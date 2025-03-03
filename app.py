@@ -1,265 +1,66 @@
-{
- "cells": [
-  {
-   "cell_type": "code",
-   "execution_count": 1,
-   "id": "3a486eb8-f326-42dc-80e8-99663f65abe4",
-   "metadata": {},
-   "outputs": [
-    {
-     "name": "stdout",
-     "output_type": "stream",
-     "text": [
-      "Defaulting to user installation because normal site-packages is not writeableNote: you may need to restart the kernel to use updated packages.\n"
-     ]
-    },
-    {
-     "name": "stderr",
-     "output_type": "stream",
-     "text": [
-      "WARNING: Ignoring invalid distribution ~ip (C:\\Users\\Kalik\\AppData\\Roaming\\Python\\Python312\\site-packages)\n",
-      "WARNING: Ignoring invalid distribution ~ip (C:\\Users\\Kalik\\AppData\\Roaming\\Python\\Python312\\site-packages)\n",
-      "WARNING: Ignoring invalid distribution ~ip (C:\\Users\\Kalik\\AppData\\Roaming\\Python\\Python312\\site-packages)\n"
-     ]
-    },
-    {
-     "name": "stdout",
-     "output_type": "stream",
-     "text": [
-      "\n",
-      "Requirement already satisfied: streamlit in c:\\anaconda\\lib\\site-packages (1.32.0)\n",
-      "Requirement already satisfied: tensorflow in c:\\users\\kalik\\appdata\\roaming\\python\\python312\\site-packages (2.18.0)\n",
-      "Requirement already satisfied: pillow in c:\\users\\kalik\\appdata\\roaming\\python\\python312\\site-packages (10.3.0)\n",
-      "Requirement already satisfied: numpy in c:\\anaconda\\lib\\site-packages (1.26.4)\n",
-      "Requirement already satisfied: opencv-python in c:\\users\\kalik\\appdata\\roaming\\python\\python312\\site-packages (4.11.0.86)\n",
-      "Requirement already satisfied: altair<6,>=4.0 in c:\\anaconda\\lib\\site-packages (from streamlit) (5.0.1)\n",
-      "Requirement already satisfied: blinker<2,>=1.0.0 in c:\\users\\kalik\\appdata\\roaming\\python\\python312\\site-packages (from streamlit) (1.9.0)\n",
-      "Requirement already satisfied: cachetools<6,>=4.0 in c:\\anaconda\\lib\\site-packages (from streamlit) (5.3.3)\n",
-      "Requirement already satisfied: click<9,>=7.0 in c:\\users\\kalik\\appdata\\roaming\\python\\python312\\site-packages (from streamlit) (8.1.7)\n",
-      "Requirement already satisfied: packaging<24,>=16.8 in c:\\users\\kalik\\appdata\\roaming\\python\\python312\\site-packages (from streamlit) (23.2)\n",
-      "Requirement already satisfied: pandas<3,>=1.3.0 in c:\\anaconda\\lib\\site-packages (from streamlit) (2.2.2)\n",
-      "Requirement already satisfied: protobuf<5,>=3.20 in c:\\users\\kalik\\appdata\\roaming\\python\\python312\\site-packages (from streamlit) (4.25.6)\n",
-      "Requirement already satisfied: pyarrow>=7.0 in c:\\anaconda\\lib\\site-packages (from streamlit) (14.0.2)\n",
-      "Requirement already satisfied: requests<3,>=2.27 in c:\\anaconda\\lib\\site-packages (from streamlit) (2.32.2)\n",
-      "Requirement already satisfied: rich<14,>=10.14.0 in c:\\anaconda\\lib\\site-packages (from streamlit) (13.3.5)\n",
-      "Requirement already satisfied: tenacity<9,>=8.1.0 in c:\\anaconda\\lib\\site-packages (from streamlit) (8.2.2)\n",
-      "Requirement already satisfied: toml<2,>=0.10.1 in c:\\anaconda\\lib\\site-packages (from streamlit) (0.10.2)\n",
-      "Requirement already satisfied: typing-extensions<5,>=4.3.0 in c:\\anaconda\\lib\\site-packages (from streamlit) (4.11.0)\n",
-      "Requirement already satisfied: gitpython!=3.1.19,<4,>=3.0.7 in c:\\anaconda\\lib\\site-packages (from streamlit) (3.1.37)\n",
-      "Requirement already satisfied: pydeck<1,>=0.8.0b4 in c:\\anaconda\\lib\\site-packages (from streamlit) (0.8.0)\n",
-      "Requirement already satisfied: tornado<7,>=6.0.3 in c:\\users\\kalik\\appdata\\roaming\\python\\python312\\site-packages (from streamlit) (6.4)\n",
-      "Requirement already satisfied: watchdog>=2.1.5 in c:\\anaconda\\lib\\site-packages (from streamlit) (4.0.1)\n",
-      "Requirement already satisfied: tensorflow-intel==2.18.0 in c:\\users\\kalik\\appdata\\roaming\\python\\python312\\site-packages (from tensorflow) (2.18.0)\n",
-      "Requirement already satisfied: absl-py>=1.0.0 in c:\\users\\kalik\\appdata\\roaming\\python\\python312\\site-packages (from tensorflow-intel==2.18.0->tensorflow) (2.1.0)\n",
-      "Requirement already satisfied: astunparse>=1.6.0 in c:\\users\\kalik\\appdata\\roaming\\python\\python312\\site-packages (from tensorflow-intel==2.18.0->tensorflow) (1.6.3)\n",
-      "Requirement already satisfied: flatbuffers>=24.3.25 in c:\\users\\kalik\\appdata\\roaming\\python\\python312\\site-packages (from tensorflow-intel==2.18.0->tensorflow) (25.2.10)\n",
-      "Requirement already satisfied: gast!=0.5.0,!=0.5.1,!=0.5.2,>=0.2.1 in c:\\users\\kalik\\appdata\\roaming\\python\\python312\\site-packages (from tensorflow-intel==2.18.0->tensorflow) (0.6.0)\n",
-      "Requirement already satisfied: google-pasta>=0.1.1 in c:\\users\\kalik\\appdata\\roaming\\python\\python312\\site-packages (from tensorflow-intel==2.18.0->tensorflow) (0.2.0)\n",
-      "Requirement already satisfied: libclang>=13.0.0 in c:\\users\\kalik\\appdata\\roaming\\python\\python312\\site-packages (from tensorflow-intel==2.18.0->tensorflow) (18.1.1)\n",
-      "Requirement already satisfied: opt-einsum>=2.3.2 in c:\\users\\kalik\\appdata\\roaming\\python\\python312\\site-packages (from tensorflow-intel==2.18.0->tensorflow) (3.4.0)\n",
-      "Requirement already satisfied: setuptools in c:\\users\\kalik\\appdata\\roaming\\python\\python312\\site-packages (from tensorflow-intel==2.18.0->tensorflow) (69.0.2)\n",
-      "Requirement already satisfied: six>=1.12.0 in c:\\users\\kalik\\appdata\\roaming\\python\\python312\\site-packages (from tensorflow-intel==2.18.0->tensorflow) (1.16.0)\n",
-      "Requirement already satisfied: termcolor>=1.1.0 in c:\\users\\kalik\\appdata\\roaming\\python\\python312\\site-packages (from tensorflow-intel==2.18.0->tensorflow) (2.5.0)\n",
-      "Requirement already satisfied: wrapt>=1.11.0 in c:\\anaconda\\lib\\site-packages (from tensorflow-intel==2.18.0->tensorflow) (1.14.1)\n",
-      "Requirement already satisfied: grpcio<2.0,>=1.24.3 in c:\\users\\kalik\\appdata\\roaming\\python\\python312\\site-packages (from tensorflow-intel==2.18.0->tensorflow) (1.70.0)\n",
-      "Requirement already satisfied: tensorboard<2.19,>=2.18 in c:\\users\\kalik\\appdata\\roaming\\python\\python312\\site-packages (from tensorflow-intel==2.18.0->tensorflow) (2.18.0)\n",
-      "Requirement already satisfied: keras>=3.5.0 in c:\\users\\kalik\\appdata\\roaming\\python\\python312\\site-packages (from tensorflow-intel==2.18.0->tensorflow) (3.8.0)\n",
-      "Requirement already satisfied: h5py>=3.11.0 in c:\\anaconda\\lib\\site-packages (from tensorflow-intel==2.18.0->tensorflow) (3.11.0)\n",
-      "Requirement already satisfied: ml-dtypes<0.5.0,>=0.4.0 in c:\\users\\kalik\\appdata\\roaming\\python\\python312\\site-packages (from tensorflow-intel==2.18.0->tensorflow) (0.4.1)\n",
-      "Requirement already satisfied: jinja2 in c:\\users\\kalik\\appdata\\roaming\\python\\python312\\site-packages (from altair<6,>=4.0->streamlit) (3.1.4)\n",
-      "Requirement already satisfied: jsonschema>=3.0 in c:\\anaconda\\lib\\site-packages (from altair<6,>=4.0->streamlit) (4.19.2)\n",
-      "Requirement already satisfied: toolz in c:\\anaconda\\lib\\site-packages (from altair<6,>=4.0->streamlit) (0.12.0)\n",
-      "Requirement already satisfied: colorama in c:\\users\\kalik\\appdata\\roaming\\python\\python312\\site-packages (from click<9,>=7.0->streamlit) (0.4.6)\n",
-      "Requirement already satisfied: gitdb<5,>=4.0.1 in c:\\anaconda\\lib\\site-packages (from gitpython!=3.1.19,<4,>=3.0.7->streamlit) (4.0.7)\n",
-      "Requirement already satisfied: python-dateutil>=2.8.2 in c:\\users\\kalik\\appdata\\roaming\\python\\python312\\site-packages (from pandas<3,>=1.3.0->streamlit) (2.8.2)\n",
-      "Requirement already satisfied: pytz>=2020.1 in c:\\anaconda\\lib\\site-packages (from pandas<3,>=1.3.0->streamlit) (2024.1)\n",
-      "Requirement already satisfied: tzdata>=2022.7 in c:\\users\\kalik\\appdata\\roaming\\python\\python312\\site-packages (from pandas<3,>=1.3.0->streamlit) (2024.1)\n",
-      "Requirement already satisfied: charset-normalizer<4,>=2 in c:\\anaconda\\lib\\site-packages (from requests<3,>=2.27->streamlit) (2.0.4)\n",
-      "Requirement already satisfied: idna<4,>=2.5 in c:\\anaconda\\lib\\site-packages (from requests<3,>=2.27->streamlit) (3.7)\n",
-      "Requirement already satisfied: urllib3<3,>=1.21.1 in c:\\anaconda\\lib\\site-packages (from requests<3,>=2.27->streamlit) (2.2.2)\n",
-      "Requirement already satisfied: certifi>=2017.4.17 in c:\\users\\kalik\\appdata\\roaming\\python\\python312\\site-packages (from requests<3,>=2.27->streamlit) (2023.11.17)\n",
-      "Requirement already satisfied: markdown-it-py<3.0.0,>=2.2.0 in c:\\anaconda\\lib\\site-packages (from rich<14,>=10.14.0->streamlit) (2.2.0)\n",
-      "Requirement already satisfied: pygments<3.0.0,>=2.13.0 in c:\\users\\kalik\\appdata\\roaming\\python\\python312\\site-packages (from rich<14,>=10.14.0->streamlit) (2.17.2)\n",
-      "Requirement already satisfied: wheel<1.0,>=0.23.0 in c:\\anaconda\\lib\\site-packages (from astunparse>=1.6.0->tensorflow-intel==2.18.0->tensorflow) (0.43.0)\n",
-      "Requirement already satisfied: smmap<5,>=3.0.1 in c:\\anaconda\\lib\\site-packages (from gitdb<5,>=4.0.1->gitpython!=3.1.19,<4,>=3.0.7->streamlit) (4.0.0)\n",
-      "Requirement already satisfied: MarkupSafe>=2.0 in c:\\users\\kalik\\appdata\\roaming\\python\\python312\\site-packages (from jinja2->altair<6,>=4.0->streamlit) (3.0.2)\n",
-      "Requirement already satisfied: attrs>=22.2.0 in c:\\anaconda\\lib\\site-packages (from jsonschema>=3.0->altair<6,>=4.0->streamlit) (23.1.0)\n",
-      "Requirement already satisfied: jsonschema-specifications>=2023.03.6 in c:\\anaconda\\lib\\site-packages (from jsonschema>=3.0->altair<6,>=4.0->streamlit) (2023.7.1)\n",
-      "Requirement already satisfied: referencing>=0.28.4 in c:\\anaconda\\lib\\site-packages (from jsonschema>=3.0->altair<6,>=4.0->streamlit) (0.30.2)\n",
-      "Requirement already satisfied: rpds-py>=0.7.1 in c:\\anaconda\\lib\\site-packages (from jsonschema>=3.0->altair<6,>=4.0->streamlit) (0.10.6)\n",
-      "Requirement already satisfied: namex in c:\\users\\kalik\\appdata\\roaming\\python\\python312\\site-packages (from keras>=3.5.0->tensorflow-intel==2.18.0->tensorflow) (0.0.8)\n",
-      "Requirement already satisfied: optree in c:\\users\\kalik\\appdata\\roaming\\python\\python312\\site-packages (from keras>=3.5.0->tensorflow-intel==2.18.0->tensorflow) (0.14.0)\n",
-      "Requirement already satisfied: mdurl~=0.1 in c:\\anaconda\\lib\\site-packages (from markdown-it-py<3.0.0,>=2.2.0->rich<14,>=10.14.0->streamlit) (0.1.0)\n",
-      "Requirement already satisfied: markdown>=2.6.8 in c:\\anaconda\\lib\\site-packages (from tensorboard<2.19,>=2.18->tensorflow-intel==2.18.0->tensorflow) (3.4.1)\n",
-      "Requirement already satisfied: tensorboard-data-server<0.8.0,>=0.7.0 in c:\\users\\kalik\\appdata\\roaming\\python\\python312\\site-packages (from tensorboard<2.19,>=2.18->tensorflow-intel==2.18.0->tensorflow) (0.7.2)\n",
-      "Requirement already satisfied: werkzeug>=1.0.1 in c:\\users\\kalik\\appdata\\roaming\\python\\python312\\site-packages (from tensorboard<2.19,>=2.18->tensorflow-intel==2.18.0->tensorflow) (3.1.3)\n"
-     ]
-    }
-   ],
-   "source": [
-    "pip install streamlit tensorflow pillow numpy opencv-python"
-   ]
-  },
-  {
-   "cell_type": "code",
-   "execution_count": 2,
-   "id": "3cc3a5c7-982b-401f-b3ba-f7279521185f",
-   "metadata": {},
-   "outputs": [
-    {
-     "name": "stderr",
-     "output_type": "stream",
-     "text": [
-      "2025-03-03 10:55:20.505 Thread 'MainThread': missing ScriptRunContext! This warning can be ignored when running in bare mode.\n",
-      "2025-03-03 10:55:20.505 Thread 'MainThread': missing ScriptRunContext! This warning can be ignored when running in bare mode.\n",
-      "2025-03-03 10:55:20.505 Thread 'MainThread': missing ScriptRunContext! This warning can be ignored when running in bare mode.\n",
-      "2025-03-03 10:55:20.521 Thread 'MainThread': missing ScriptRunContext! This warning can be ignored when running in bare mode.\n",
-      "2025-03-03 10:55:20.523 Thread 'MainThread': missing ScriptRunContext! This warning can be ignored when running in bare mode.\n",
-      "2025-03-03 10:55:20.525 Thread 'MainThread': missing ScriptRunContext! This warning can be ignored when running in bare mode.\n",
-      "2025-03-03 10:55:20.525 Thread 'MainThread': missing ScriptRunContext! This warning can be ignored when running in bare mode.\n",
-      "2025-03-03 10:55:20.527 Thread 'MainThread': missing ScriptRunContext! This warning can be ignored when running in bare mode.\n",
-      "2025-03-03 10:55:20.528 Thread 'MainThread': missing ScriptRunContext! This warning can be ignored when running in bare mode.\n",
-      "2025-03-03 10:55:20.529 Thread 'MainThread': missing ScriptRunContext! This warning can be ignored when running in bare mode.\n",
-      "2025-03-03 10:55:20.532 Thread 'MainThread': missing ScriptRunContext! This warning can be ignored when running in bare mode.\n",
-      "2025-03-03 10:55:20.552 Thread 'MainThread': missing ScriptRunContext! This warning can be ignored when running in bare mode.\n",
-      "2025-03-03 10:55:20.552 Thread 'MainThread': missing ScriptRunContext! This warning can be ignored when running in bare mode.\n",
-      "2025-03-03 10:55:20.552 Thread 'MainThread': missing ScriptRunContext! This warning can be ignored when running in bare mode.\n",
-      "2025-03-03 10:55:20.552 Thread 'MainThread': missing ScriptRunContext! This warning can be ignored when running in bare mode.\n"
-     ]
-    }
-   ],
-   "source": [
-    "import streamlit as st\n",
-    "import cv2\n",
-    "import numpy as np\n",
-    "import tensorflow as tf\n",
-    "import mediapipe as mp\n",
-    "import os\n",
-    "from PIL import Image\n",
-    "\n",
-    "# Load the trained model\n",
-    "model = tf.keras.models.load_model(\"sign_language_model_transfer.keras\")\n",
-    "\n",
-    "# Load class indices\n",
-    "data_dir = \"./SData\"\n",
-    "class_indices = {v: k for k, v in enumerate(sorted(os.listdir(data_dir)))}  # Auto-detect classes\n",
-    "index_to_class = {v: k for k, v in class_indices.items()}\n",
-    "\n",
-    "# Initialize MediaPipe Hands\n",
-    "mp_hands = mp.solutions.hands\n",
-    "mp_drawing = mp.solutions.drawing_utils\n",
-    "\n",
-    "# Function to preprocess image\n",
-    "def preprocess_frame(frame):\n",
-    "    tensor = tf.image.resize(frame, [128, 128])  # Resize to 128x128\n",
-    "    tensor = tf.cast(tensor, tf.float32) / 255.0  # Normalize\n",
-    "    tensor = tf.expand_dims(tensor, axis=0)      # Add batch dimension\n",
-    "    return tensor\n",
-    "\n",
-    "# Streamlit UI\n",
-    "st.title(\"SignLoom\")\n",
-    "st.sidebar.header(\"Options\")\n",
-    "option = st.sidebar.radio(\"Choose an option:\", (\"Upload Image\", \"Use Webcam\"))\n",
-    "\n",
-    "if option == \"Upload Image\":\n",
-    "    uploaded_file = st.file_uploader(\"Upload an image of a hand sign\", type=[\"jpg\", \"png\", \"jpeg\"])\n",
-    "    if uploaded_file is not None:\n",
-    "        image = Image.open(uploaded_file)\n",
-    "        st.image(image, caption=\"Uploaded Image\", use_column_width=True)\n",
-    "        \n",
-    "        # Convert image for processing\n",
-    "        image = np.array(image)\n",
-    "        image = cv2.cvtColor(image, cv2.COLOR_RGB2BGR)\n",
-    "        image = preprocess_frame(image)\n",
-    "        \n",
-    "        # Make prediction\n",
-    "        predictions = model.predict(image)\n",
-    "        pred_index = np.argmax(predictions[0])\n",
-    "        pred_class = index_to_class.get(pred_index, \"Unknown\")\n",
-    "        confidence = np.max(predictions[0]) * 100\n",
-    "        \n",
-    "        st.write(f\"**Prediction:** {pred_class} ({confidence:.2f}%)\")\n",
-    "\n",
-    "elif option == \"Use Webcam\":\n",
-    "    st.write(\"Press 'Start' to access your webcam and detect hand signs.\")\n",
-    "    run_webcam = st.button(\"Start Webcam\")\n",
-    "    \n",
-    "    if run_webcam:\n",
-    "        cap = cv2.VideoCapture(0)\n",
-    "        stframe = st.empty()\n",
-    "\n",
-    "        with mp_hands.Hands(static_image_mode=False, max_num_hands=2, min_detection_confidence=0.7) as hands:\n",
-    "            while True:\n",
-    "                ret, frame = cap.read()\n",
-    "                if not ret:\n",
-    "                    st.write(\"Could not access webcam.\")\n",
-    "                    break\n",
-    "                \n",
-    "                frame = cv2.flip(frame, 1)\n",
-    "                rgb_frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)\n",
-    "                result = hands.process(rgb_frame)\n",
-    "                \n",
-    "                if result.multi_hand_landmarks:\n",
-    "                    for hand_landmarks in result.multi_hand_landmarks:\n",
-    "                        mp_drawing.draw_landmarks(frame, hand_landmarks, mp_hands.HAND_CONNECTIONS)\n",
-    "                    \n",
-    "                    # Preprocess for model\n",
-    "                    processed_frame = preprocess_frame(rgb_frame)\n",
-    "                    predictions = model.predict(processed_frame)\n",
-    "                    pred_index = np.argmax(predictions[0])\n",
-    "                    pred_class = index_to_class.get(pred_index, \"Unknown\")\n",
-    "                    confidence = np.max(predictions[0]) * 100\n",
-    "                    \n",
-    "                    cv2.putText(frame, f'{pred_class} ({confidence:.2f}%)', (10, 30),\n",
-    "                                cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 0), 2, cv2.LINE_AA)\n",
-    "                else:\n",
-    "                    cv2.putText(frame, \"No Hands Detected\", (10, 30),\n",
-    "                                cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 255), 2, cv2.LINE_AA)\n",
-    "                \n",
-    "                stframe.image(frame, channels=\"BGR\")\n",
-    "                \n",
-    "                if st.button(\"Stop Webcam\"):\n",
-    "                    break\n",
-    "        \n",
-    "        cap.release()\n"
-   ]
-  },
-  {
-   "cell_type": "code",
-   "execution_count": None,
-   "id": "e06553a6-a0f5-4cb0-90a8-0a845c682fa8",
-   "metadata": {},
-   "outputs": [],
-   "source": []
-  },
-  {
-   "cell_type": "code",
-   "execution_count": None,
-   "id": "aae33d7f-732d-4902-9649-6bca63d91593",
-   "metadata": {},
-   "outputs": [],
-   "source": []
-  }
- ],
- "metadata": {
-  "kernelspec": {
-   "display_name": "Python 3.10 (hand_env)",
-   "language": "python",
-   "name": "hand_env"
-  },
-  "language_info": {
-   "codemirror_mode": {
-    "name": "ipython",
-    "version": 3
-   },
-   "file_extension": ".py",
-   "mimetype": "text/x-python",
-   "name": "python",
-   "nbconvert_exporter": "python",
-   "pygments_lexer": "ipython3",
-   "version": "3.11.0"
-  }
- },
- "nbformat": 4,
- "nbformat_minor": 5
-}
+# Streamlit UI
+st.title("SignLoom")
+st.sidebar.header("Options")
+option = st.sidebar.radio("Choose an option:", ('Upload Image', 'Use Webcam'))
+
+if option == 'Upload Image':
+    uploaded_file = st.file_uploader('Upload an image of a hand sign', type=['jpg', 'png', 'jpeg'])
+    if uploaded_file is not None:
+        image = Image.open(uploaded_file)
+        st.image(image, caption='Uploaded Image', use_column_width=True)
+        
+        # Convert image for processing
+        image = np.array(image)
+        image = cv2.cvtColor(image, cv2.COLOR_RGB2BGR)
+        image = preprocess_frame(image)
+        
+        # Make prediction
+        predictions = model.predict(image)
+        pred_index = np.argmax(predictions[0])
+        pred_class = index_to_class.get(pred_index, 'Unknown')
+        confidence = np.max(predictions[0]) * 100
+        
+        st.write(f'**Prediction:** {pred_class} ({confidence:.2f}%)')
+
+elif option == 'Use Webcam':
+    st.write("Press 'Start' to access your webcam and detect hand signs.")
+    run_webcam = st.button('Start Webcam')
+    
+    if run_webcam:
+        cap = cv2.VideoCapture(0)
+        stframe = st.empty()
+        
+        with mp_hands.Hands(static_image_mode=False, max_num_hands=2, min_detection_confidence=0.7) as hands:
+            while True:
+                ret, frame = cap.read()
+                if not ret:
+                    st.write("Could not access webcam.")
+                    break
+                
+                frame = cv2.flip(frame, 1)
+                rgb_frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
+                result = hands.process(rgb_frame)
+                
+                if result.multi_hand_landmarks:
+                    for hand_landmarks in result.multi_hand_landmarks:
+                        mp_drawing.draw_landmarks(frame, hand_landmarks, mp_hands.HAND_CONNECTIONS)
+                    
+                    # Preprocess for model
+                    processed_frame = preprocess_frame(rgb_frame)
+                    predictions = model.predict(processed_frame)
+                    pred_index = np.argmax(predictions[0])
+                    pred_class = index_to_class.get(pred_index, 'Unknown')
+                    confidence = np.max(predictions[0]) * 100
+                    
+                    cv2.putText(frame, f'{pred_class} ({confidence:.2f}%)', (10, 30),
+                                cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 0), 2, cv2.LINE_AA)
+                else:
+                    cv2.putText(frame, "No Hands Detected", (10, 30),
+                                cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 255), 2, cv2.LINE_AA)
+                
+                stframe.image(frame, channels='BGR')
+                
+                if st.button('Stop Webcam'):
+                    break
+        
+        cap.release()
