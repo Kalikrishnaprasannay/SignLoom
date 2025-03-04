@@ -1,0 +1,133 @@
+{
+ "cells": [
+  {
+   "cell_type": "code",
+   "execution_count": 1,
+   "id": "83ccb248-e141-4476-a915-4473e9a26e87",
+   "metadata": {},
+   "outputs": [
+    {
+     "name": "stderr",
+     "output_type": "stream",
+     "text": [
+      "2025-03-04 09:23:57.208 WARNING streamlit.runtime.scriptrunner_utils.script_run_context: Thread 'MainThread': missing ScriptRunContext! This warning can be ignored when running in bare mode.\n",
+      "2025-03-04 09:23:59.395 \n",
+      "  \u001b[33m\u001b[1mWarning:\u001b[0m to view this Streamlit app on a browser, run it with the following\n",
+      "  command:\n",
+      "\n",
+      "    streamlit run C:\\Users\\Kalik\\hand_env\\Lib\\site-packages\\ipykernel_launcher.py [ARGUMENTS]\n",
+      "2025-03-04 09:23:59.397 Thread 'MainThread': missing ScriptRunContext! This warning can be ignored when running in bare mode.\n",
+      "2025-03-04 09:23:59.399 Thread 'MainThread': missing ScriptRunContext! This warning can be ignored when running in bare mode.\n",
+      "2025-03-04 09:23:59.400 Thread 'MainThread': missing ScriptRunContext! This warning can be ignored when running in bare mode.\n",
+      "2025-03-04 09:23:59.401 Thread 'MainThread': missing ScriptRunContext! This warning can be ignored when running in bare mode.\n",
+      "2025-03-04 09:23:59.402 Thread 'MainThread': missing ScriptRunContext! This warning can be ignored when running in bare mode.\n",
+      "2025-03-04 09:23:59.403 Thread 'MainThread': missing ScriptRunContext! This warning can be ignored when running in bare mode.\n",
+      "2025-03-04 09:23:59.406 Thread 'MainThread': missing ScriptRunContext! This warning can be ignored when running in bare mode.\n",
+      "2025-03-04 09:23:59.406 Session state does not function when running a script without `streamlit run`\n",
+      "2025-03-04 09:23:59.407 Thread 'MainThread': missing ScriptRunContext! This warning can be ignored when running in bare mode.\n",
+      "2025-03-04 09:23:59.408 Thread 'MainThread': missing ScriptRunContext! This warning can be ignored when running in bare mode.\n",
+      "2025-03-04 09:23:59.409 Thread 'MainThread': missing ScriptRunContext! This warning can be ignored when running in bare mode.\n",
+      "2025-03-04 09:23:59.410 Thread 'MainThread': missing ScriptRunContext! This warning can be ignored when running in bare mode.\n",
+      "2025-03-04 09:23:59.410 Thread 'MainThread': missing ScriptRunContext! This warning can be ignored when running in bare mode.\n",
+      "2025-03-04 09:23:59.412 Thread 'MainThread': missing ScriptRunContext! This warning can be ignored when running in bare mode.\n",
+      "2025-03-04 09:23:59.412 Thread 'MainThread': missing ScriptRunContext! This warning can be ignored when running in bare mode.\n",
+      "2025-03-04 09:23:59.413 Thread 'MainThread': missing ScriptRunContext! This warning can be ignored when running in bare mode.\n",
+      "2025-03-04 09:23:59.413 Thread 'MainThread': missing ScriptRunContext! This warning can be ignored when running in bare mode.\n",
+      "2025-03-04 09:23:59.414 Thread 'MainThread': missing ScriptRunContext! This warning can be ignored when running in bare mode.\n",
+      "2025-03-04 09:23:59.414 Thread 'MainThread': missing ScriptRunContext! This warning can be ignored when running in bare mode.\n",
+      "2025-03-04 09:23:59.414 Thread 'MainThread': missing ScriptRunContext! This warning can be ignored when running in bare mode.\n"
+     ]
+    }
+   ],
+   "source": [
+    "import streamlit as st\n",
+    "import tensorflow as tf\n",
+    "import numpy as np\n",
+    "import cv2\n",
+    "import os\n",
+    "import pyttsx3\n",
+    "from PIL import Image\n",
+    "\n",
+    "# Load the trained model\n",
+    "model = tf.keras.models.load_model(\"sign_language_model_transfer.keras\")\n",
+    "\n",
+    "# Load class indices\n",
+    "class_indices = {v: k for k, v in enumerate(sorted(os.listdir(\"./SData\")))}\n",
+    "index_to_class = {v: k for k, v in class_indices.items()}\n",
+    "\n",
+    "# Initialize text-to-speech engine\n",
+    "engine = pyttsx3.init()\n",
+    "\n",
+    "\n",
+    "def preprocess_image(image):\n",
+    "    image = image.resize((128, 128))\n",
+    "    image = np.array(image) / 255.0\n",
+    "    image = np.expand_dims(image, axis=0)\n",
+    "    return image\n",
+    "\n",
+    "\n",
+    "def predict_sign(image):\n",
+    "    processed_image = preprocess_image(image)\n",
+    "    predictions = model.predict(processed_image)\n",
+    "    pred_index = np.argmax(predictions[0])\n",
+    "    pred_class = index_to_class.get(pred_index, \"Unknown\")\n",
+    "    confidence = np.max(predictions[0]) * 100\n",
+    "    return pred_class, confidence\n",
+    "\n",
+    "\n",
+    "def main():\n",
+    "    st.title(\"Sign Language Recognition\")\n",
+    "    st.sidebar.title(\"Options\")\n",
+    "    mode = st.sidebar.radio(\"Choose Input Mode:\", [\"Upload Image\", \"Use Webcam\"])\n",
+    "    speak_enabled = st.sidebar.checkbox(\"Enable Text-to-Speech\", True)\n",
+    "\n",
+    "    if mode == \"Upload Image\":\n",
+    "        uploaded_file = st.file_uploader(\"Upload an Image\", type=[\"jpg\", \"png\", \"jpeg\"])\n",
+    "        if uploaded_file:\n",
+    "            image = Image.open(uploaded_file)\n",
+    "            st.image(image, caption=\"Uploaded Image\", use_column_width=True)\n",
+    "            pred_class, confidence = predict_sign(image)\n",
+    "            st.success(f\"Predicted Sign: {pred_class} ({confidence:.2f}%)\")\n",
+    "            if speak_enabled:\n",
+    "                engine.say(pred_class)\n",
+    "                engine.runAndWait()\n",
+    "\n",
+    "    elif mode == \"Use Webcam\":\n",
+    "        st.write(\"Webcam integration is under development.\")\n",
+    "\n",
+    "\n",
+    "if __name__ == \"__main__\":\n",
+    "    main()\n"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "id": "0c3a2bdd-90a7-4c86-a461-7aa879bd0f47",
+   "metadata": {},
+   "outputs": [],
+   "source": []
+  }
+ ],
+ "metadata": {
+  "kernelspec": {
+   "display_name": "Python 3.10 (hand_env)",
+   "language": "python",
+   "name": "hand_env"
+  },
+  "language_info": {
+   "codemirror_mode": {
+    "name": "ipython",
+    "version": 3
+   },
+   "file_extension": ".py",
+   "mimetype": "text/x-python",
+   "name": "python",
+   "nbconvert_exporter": "python",
+   "pygments_lexer": "ipython3",
+   "version": "3.11.0"
+  }
+ },
+ "nbformat": 4,
+ "nbformat_minor": 5
+}
