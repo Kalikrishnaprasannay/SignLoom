@@ -106,7 +106,7 @@ if option == "Use Webcam":
                 break  # Stop if 'q' is pressed
 
     cap.release()
-    cv2.destroyAllWindows()
+    #cv2.destroyAllWindows()
 
 elif option == "Upload Video":
     uploaded_file = st.file_uploader("Upload a video file", type=["mp4", "avi", "mov"])
