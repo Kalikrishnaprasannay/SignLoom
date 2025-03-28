@@ -5,3 +5,4 @@ numpy
 tensorflow
 pyttsx3
 opencv-python-headless
+espeak
