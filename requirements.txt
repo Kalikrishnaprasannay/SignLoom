@@ -3,6 +3,6 @@ opencv-python
 mediapipe
 numpy
 tensorflow
-pyttsx3
+gtts
 opencv-python-headless
 
