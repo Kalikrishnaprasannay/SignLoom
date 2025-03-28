@@ -4,8 +4,8 @@ import mediapipe as mp
 import numpy as np
 import tensorflow as tf
 import os
-import pyttsx3
-import threading
+from gtts import gTTS
+import tempfile
 
 # Load the trained model with error handling
 try:
@@ -22,15 +22,13 @@ index_to_class = {v: k for k, v in class_indices.items()}
 mp_hands = mp.solutions.hands
 mp_drawing = mp.solutions.drawing_utils
 
-# Initialize Text-to-Speech with error handling
-tts_engine = pyttsx3.init()
-tts_engine.setProperty('rate', 150)  # Adjust speed
-tts_engine.setProperty('volume', 1.0)  # Max volume
-
+# Function to generate speech from text using gTTS
 def speak_text(text):
     try:
-        thread = threading.Thread(target=lambda: tts_engine.say(text) or tts_engine.runAndWait())
-        thread.start()
+        tts = gTTS(text=text, lang='en')
+        with tempfile.NamedTemporaryFile(delete=False, suffix=".mp3") as tmp_file:
+            tts.save(tmp_file.name)
+            st.audio(tmp_file.name, format="audio/mp3")
     except Exception as e:
         st.error(f"Speech synthesis error: {e}")
 
@@ -91,13 +89,11 @@ if option == "Use Webcam":
                 speak_text(cleaned_pred_class)
 
                 # Update detected sign text box
-                cleaned_pred_class = pred_class.replace("_", " ")
                 detected_sign_placeholder.text(f"Detected Sign: {cleaned_pred_class}")
 
                 # Display Prediction
                 cv2.putText(frame, f'{pred_class} ({confidence:.2f}%)', (10, 30),
                             cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 0), 2, cv2.LINE_AA)
-
             else:
                 cv2.putText(frame, "No Hands Detected", (10, 30),
                             cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 255), 2, cv2.LINE_AA)
@@ -139,7 +135,6 @@ elif option == "Upload Video":
             speak_text(cleaned_pred_class)
 
             # Update detected sign text box
-            cleaned_pred_class = pred_class.replace("_", " ")
             detected_sign_placeholder.text(f"Detected Sign: {cleaned_pred_class}")
 
             # Display Prediction on Frame
