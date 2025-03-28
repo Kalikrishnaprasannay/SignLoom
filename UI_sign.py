@@ -4,8 +4,10 @@ import mediapipe as mp
 import numpy as np
 import tensorflow as tf
 import os
-from gtts import gTTS
 import tempfile
+import av
+from gtts import gTTS
+from streamlit_webrtc import webrtc_streamer, VideoProcessorBase
 
 # Load the trained model with error handling
 try:
@@ -34,9 +36,9 @@ def speak_text(text):
 
 # Preprocess Frame Function
 def preprocess_frame(frame):
-    tensor = tf.image.resize(frame, [128, 128])
-    tensor = tf.cast(tensor, tf.float32) / 255.0  # Normalize
-    tensor = tf.expand_dims(tensor, axis=0)  # Add batch dimension
+    tensor = cv2.resize(frame, (128, 128))
+    tensor = np.array(tensor, dtype=np.float32) / 255.0  # Normalize
+    tensor = np.expand_dims(tensor, axis=0)  # Add batch dimension
     return tensor
 
 # Function to Predict Sign
@@ -50,63 +52,43 @@ def predict_sign(frame):
     confidence = np.max(predictions[0]) * 100
     return pred_class, confidence
 
+# WebRTC Video Processing Class
+class VideoProcessor(VideoProcessorBase):
+    def __init__(self):
+        self.hands = mp_hands.Hands(min_detection_confidence=0.7, min_tracking_confidence=0.7)
+
+    def recv(self, frame):
+        img = frame.to_ndarray(format="bgr24")
+        img_rgb = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
+        result = self.hands.process(img_rgb)
+
+        if result.multi_hand_landmarks:
+            for hand_landmarks in result.multi_hand_landmarks:
+                mp_drawing.draw_landmarks(img, hand_landmarks, mp_hands.HAND_CONNECTIONS)
+
+            # Predict sign if a hand is detected
+            if model:
+                pred_class, confidence = predict_sign(img_rgb)
+                cv2.putText(img, f'{pred_class} ({confidence:.2f}%)', (10, 50),
+                            cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 0), 2, cv2.LINE_AA)
+
+                # Speak detected sign
+                speak_text(pred_class.replace("_", " "))
+
+        return av.VideoFrame.from_ndarray(img, format="bgr24")
+
 # ---- STREAMLIT UI ----
 st.title("SignLoom: Sign Language Interpreter")
 
 # Option to use Webcam or Upload Video
 option = st.radio("Choose input method:", ("Use Webcam", "Upload Video"))
 
-# Placeholder for displaying detected sign
+# Placeholder for detected sign
 detected_sign_placeholder = st.empty()
 
 if option == "Use Webcam":
     st.write("Real-time Sign Language Recognition")
-    st.warning("Press 'q' on your keyboard to stop the webcam.")
-
-    # Open Webcam
-    cap = cv2.VideoCapture(0)
-    stframe = st.empty()
-
-    with mp_hands.Hands(static_image_mode=False, max_num_hands=2, min_detection_confidence=0.7) as hands:
-        while cap.isOpened():
-            ret, frame = cap.read()
-            if not ret:
-                break
-
-            frame = cv2.flip(frame, 1)
-            rgb_frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
-            result = hands.process(rgb_frame)
-
-            if result.multi_hand_landmarks:
-                for hand_landmarks in result.multi_hand_landmarks:
-                    mp_drawing.draw_landmarks(frame, hand_landmarks, mp_hands.HAND_CONNECTIONS)
-
-                # Predict Sign
-                pred_class, confidence = predict_sign(rgb_frame)
-
-                # Speak the predicted sign
-                cleaned_pred_class = pred_class.replace("_", " ")
-                speak_text(cleaned_pred_class)
-
-                # Update detected sign text box
-                detected_sign_placeholder.text(f"Detected Sign: {cleaned_pred_class}")
-
-                # Display Prediction
-                cv2.putText(frame, f'{pred_class} ({confidence:.2f}%)', (10, 30),
-                            cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 0), 2, cv2.LINE_AA)
-            else:
-                cv2.putText(frame, "No Hands Detected", (10, 30),
-                            cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 255), 2, cv2.LINE_AA)
-
-            # Display Frame in Streamlit
-            stframe.image(frame, channels="BGR")
-
-            # Check for manual exit using keyboard key 'q'
-            if cv2.waitKey(1) & 0xFF == ord('q'):
-                break  # Stop if 'q' is pressed
-
-    cap.release()
-    #cv2.destroyAllWindows()
+    webrtc_streamer(key="sign-detection", video_processor_factory=VideoProcessor)
 
 elif option == "Upload Video":
     uploaded_file = st.file_uploader("Upload a video file", type=["mp4", "avi", "mov"])
