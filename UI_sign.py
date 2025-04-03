@@ -1,16 +1,19 @@
 import streamlit as st
-import cv2
-import mediapipe as mp
 import numpy as np
-import tensorflow as tf
 import os
+import cv2
 import tempfile
 import av
+import mediapipe as mp
+import tensorflow as tf
 from gtts import gTTS
 from streamlit_webrtc import webrtc_streamer, VideoProcessorBase
 
-# ---- Load Model Safely ----
-@st.cache_resource
+# Ensure OpenCV uses headless mode to avoid libGL issues
+cv2.setNumThreads(1)
+
+# Load the trained model with error handling
+@st.cache_resource  # Cache the model for better performance
 def load_model():
     try:
         return tf.keras.models.load_model("sign_language_model_transfer.keras")
@@ -20,19 +23,15 @@ def load_model():
 
 model = load_model()
 
-# ---- Load Class Indices (Auto-detect from Dataset Folders) ----
-if os.path.exists("./SData"):
-    class_indices = {v: k for k, v in enumerate(sorted(os.listdir("./SData")))}
-    index_to_class = {v: k for k, v in class_indices.items()}
-else:
-    st.error("Error: Dataset folder './SData' not found!")
-    class_indices, index_to_class = {}, {}
+# Load class indices from dataset
+class_indices = {v: k for k, v in enumerate(sorted(os.listdir("./SData")))}
+index_to_class = {v: k for k, v in class_indices.items()}
 
-# ---- Initialize MediaPipe Hand Detection ----
+# Initialize MediaPipe Hand Detection
 mp_hands = mp.solutions.hands
 mp_drawing = mp.solutions.drawing_utils
 
-# ---- Speech Synthesis Function ----
+# Function to generate speech from text using gTTS
 def speak_text(text):
     try:
         tts = gTTS(text=text, lang='en')
@@ -42,14 +41,14 @@ def speak_text(text):
     except Exception as e:
         st.error(f"Speech synthesis error: {e}")
 
-# ---- Preprocess Frame for Model Prediction ----
+# Preprocess Frame Function
 def preprocess_frame(frame):
     tensor = cv2.resize(frame, (128, 128))
     tensor = np.array(tensor, dtype=np.float32) / 255.0  # Normalize
     tensor = np.expand_dims(tensor, axis=0)  # Add batch dimension
     return tensor
 
-# ---- Predict Sign from Frame ----
+# Function to Predict Sign
 def predict_sign(frame):
     if model is None:
         return "Error: Model not loaded", 0.0
@@ -60,7 +59,7 @@ def predict_sign(frame):
     confidence = np.max(predictions[0]) * 100
     return pred_class, confidence
 
-# ---- WebRTC Video Processing Class ----
+# WebRTC Video Processing Class
 class VideoProcessor(VideoProcessorBase):
     def __init__(self):
         self.hands = mp_hands.Hands(min_detection_confidence=0.7, min_tracking_confidence=0.7)
@@ -86,19 +85,19 @@ class VideoProcessor(VideoProcessorBase):
         return av.VideoFrame.from_ndarray(img, format="bgr24")
 
 # ---- STREAMLIT UI ----
-st.title("🖐️ SignLoom: Real-time Sign Language Interpreter")
+st.title("SignLoom: Sign Language Interpreter")
 
-# ---- Choose Input Method ----
-option = st.radio("Choose input method:", ("📷 Use Webcam", "📂 Upload Video"))
+# Option to use Webcam or Upload Video
+option = st.radio("Choose input method:", ("Use Webcam", "Upload Video"))
 
 # Placeholder for detected sign
 detected_sign_placeholder = st.empty()
 
-if option == "📷 Use Webcam":
-    st.write("**Real-time Sign Language Recognition**")
+if option == "Use Webcam":
+    st.write("Real-time Sign Language Recognition")
     webrtc_streamer(key="sign-detection", video_processor_factory=VideoProcessor)
 
-elif option == "📂 Upload Video":
+elif option == "Upload Video":
     uploaded_file = st.file_uploader("Upload a video file", type=["mp4", "avi", "mov"])
 
     if uploaded_file is not None:
