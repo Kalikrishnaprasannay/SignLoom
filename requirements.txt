@@ -1,7 +1,8 @@
-streamlit
 opencv-python-headless
+streamlit
+streamlit-webrtc
+tensorflow
 mediapipe
 numpy
-tensorflow
 gtts
-streamlit-webrtc
+av
