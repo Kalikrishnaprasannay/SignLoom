@@ -1,60 +1,57 @@
-import os
-import cv2
 import streamlit as st
+import cv2
+import mediapipe as mp
 import numpy as np
 import tensorflow as tf
-import mediapipe as mp
 import tempfile
 import av
 from gtts import gTTS
 from streamlit_webrtc import webrtc_streamer, VideoProcessorBase
 
-# Fix OpenCV libGL issue
-os.environ["OPENCV_VIDEOIO_PRIORITY_MSMF"] = "0"
-os.environ["QT_QPA_PLATFORM"] = "offscreen"
-cv2.setNumThreads(1)
-
-# Load the trained model
+# ---- Load the trained model with error handling ----
 @st.cache_resource
 def load_model():
     try:
-        return tf.keras.models.load_model("sign_language_model_transfer.keras")
+        model = tf.keras.models.load_model("sign_language_model_transfer.keras")
+        return model
     except Exception as e:
         st.error(f"Error loading model: {e}")
         return None
 
 model = load_model()
 
-# Load class indices dynamically
+# ---- Load class indices ----
+import os
 class_indices = {v: k for k, v in enumerate(sorted(os.listdir("./SData")))}
 index_to_class = {v: k for k, v in class_indices.items()}
 
-# Initialize MediaPipe Hand Detection
+# ---- Initialize MediaPipe Hand Detection ----
 mp_hands = mp.solutions.hands
 mp_drawing = mp.solutions.drawing_utils
 
-# Function to generate speech from text using gTTS
+# ---- Function to generate speech using gTTS ----
 def speak_text(text):
     try:
         tts = gTTS(text=text, lang='en')
-        temp_audio = tempfile.NamedTemporaryFile(delete=False, suffix=".mp3")
-        tts.save(temp_audio.name)
-        st.audio(temp_audio.name, format="audio/mp3")
-        os.unlink(temp_audio.name)  # Delete file after playback
+        with tempfile.NamedTemporaryFile(delete=False, suffix=".mp3") as tmp_file:
+            tts.save(tmp_file.name)
+            st.audio(tmp_file.name, format="audio/mp3")
     except Exception as e:
         st.error(f"Speech synthesis error: {e}")
 
-# Preprocess frame for model
+# ---- Faster Frame Preprocessing ----
 def preprocess_frame(frame):
-    tensor = cv2.resize(frame, (128, 128))
-    tensor = np.array(tensor, dtype=np.float32) / 255.0  # Normalize
-    tensor = np.expand_dims(tensor, axis=0)  # Add batch dimension
-    return tensor
+    frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)  # Convert to RGB
+    frame = cv2.resize(frame, (128, 128))  # Resize to match model input
+    frame = np.array(frame, dtype=np.float32) / 255.0  # Normalize
+    frame = np.expand_dims(frame, axis=0)  # Add batch dimension
+    return frame
 
-# Function to predict sign
+# ---- Predict Sign Function ----
 def predict_sign(frame):
     if model is None:
         return "Error: Model not loaded", 0.0
+
     processed_frame = preprocess_frame(frame)
     predictions = model.predict(processed_frame)
     pred_index = np.argmax(predictions[0])
@@ -62,7 +59,7 @@ def predict_sign(frame):
     confidence = np.max(predictions[0]) * 100
     return pred_class, confidence
 
-# WebRTC Video Processing Class
+# ---- WebRTC Video Processing Class ----
 class VideoProcessor(VideoProcessorBase):
     def __init__(self):
         self.hands = mp_hands.Hands(min_detection_confidence=0.7, min_tracking_confidence=0.7)
@@ -76,25 +73,24 @@ class VideoProcessor(VideoProcessorBase):
             for hand_landmarks in result.multi_hand_landmarks:
                 mp_drawing.draw_landmarks(img, hand_landmarks, mp_hands.HAND_CONNECTIONS)
 
-            # Predict sign if hand detected
+            # ---- Predict sign language only if a hand is detected ----
             if model:
                 pred_class, confidence = predict_sign(img_rgb)
+
+                # ---- Display Prediction on Stream ----
                 cv2.putText(img, f'{pred_class} ({confidence:.2f}%)', (10, 50),
                             cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 0), 2, cv2.LINE_AA)
 
-                # Speak detected sign
+                # ---- Speak Detected Sign ----
                 speak_text(pred_class.replace("_", " "))
 
         return av.VideoFrame.from_ndarray(img, format="bgr24")
 
 # ---- STREAMLIT UI ----
-st.title("SignLoom: Sign Language Interpreter")
+st.title("SignLoom: Real-Time Sign Language Interpreter")
 
-# Option to use Webcam or Upload Video
+# ---- Webcam or Video Upload Option ----
 option = st.radio("Choose input method:", ("Use Webcam", "Upload Video"))
-
-# Placeholder for detected sign
-detected_sign_placeholder = st.empty()
 
 if option == "Use Webcam":
     st.write("Real-time Sign Language Recognition")
@@ -109,7 +105,6 @@ elif option == "Upload Video":
 
         st.video("temp_video.mp4")
 
-        # Process Video
         cap = cv2.VideoCapture("temp_video.mp4")
         stframe = st.empty()
 
@@ -118,14 +113,11 @@ elif option == "Upload Video":
             if not ret:
                 break
 
+            # Predict Sign
             pred_class, confidence = predict_sign(frame)
 
-            # Speak detected sign
-            cleaned_pred_class = pred_class.replace("_", " ")
-            speak_text(cleaned_pred_class)
-
-            # Update detected sign text box
-            detected_sign_placeholder.text(f"Detected Sign: {cleaned_pred_class}")
+            # Speak the predicted sign
+            speak_text(pred_class.replace("_", " "))
 
             # Display Prediction on Frame
             cv2.putText(frame, f'{pred_class} ({confidence:.2f}%)', (10, 30),
