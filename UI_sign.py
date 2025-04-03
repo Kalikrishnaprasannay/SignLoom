@@ -9,7 +9,7 @@ import av
 from gtts import gTTS
 from streamlit_webrtc import webrtc_streamer, VideoProcessorBase
 
-# Load the trained model with error handling
+# ---- Load Model Safely ----
 @st.cache_resource
 def load_model():
     try:
@@ -20,23 +20,19 @@ def load_model():
 
 model = load_model()
 
-# Load class indices (auto-detect from dataset folders)
-@st.cache_resource
-def load_class_indices():
-    try:
-        return {v: k for k, v in enumerate(sorted(os.listdir("./SData")))}
-    except Exception as e:
-        st.error(f"Error loading class indices: {e}")
-        return {}
+# ---- Load Class Indices (Auto-detect from Dataset Folders) ----
+if os.path.exists("./SData"):
+    class_indices = {v: k for k, v in enumerate(sorted(os.listdir("./SData")))}
+    index_to_class = {v: k for k, v in class_indices.items()}
+else:
+    st.error("Error: Dataset folder './SData' not found!")
+    class_indices, index_to_class = {}, {}
 
-class_indices = load_class_indices()
-index_to_class = {v: k for k, v in class_indices.items()}
-
-# Initialize MediaPipe Hand Detection
+# ---- Initialize MediaPipe Hand Detection ----
 mp_hands = mp.solutions.hands
 mp_drawing = mp.solutions.drawing_utils
 
-# Function to generate speech from text using gTTS
+# ---- Speech Synthesis Function ----
 def speak_text(text):
     try:
         tts = gTTS(text=text, lang='en')
@@ -46,14 +42,14 @@ def speak_text(text):
     except Exception as e:
         st.error(f"Speech synthesis error: {e}")
 
-# Preprocess Frame Function
+# ---- Preprocess Frame for Model Prediction ----
 def preprocess_frame(frame):
     tensor = cv2.resize(frame, (128, 128))
     tensor = np.array(tensor, dtype=np.float32) / 255.0  # Normalize
     tensor = np.expand_dims(tensor, axis=0)  # Add batch dimension
     return tensor
 
-# Function to Predict Sign
+# ---- Predict Sign from Frame ----
 def predict_sign(frame):
     if model is None:
         return "Error: Model not loaded", 0.0
@@ -64,7 +60,7 @@ def predict_sign(frame):
     confidence = np.max(predictions[0]) * 100
     return pred_class, confidence
 
-# WebRTC Video Processing Class
+# ---- WebRTC Video Processing Class ----
 class VideoProcessor(VideoProcessorBase):
     def __init__(self):
         self.hands = mp_hands.Hands(min_detection_confidence=0.7, min_tracking_confidence=0.7)
@@ -90,31 +86,30 @@ class VideoProcessor(VideoProcessorBase):
         return av.VideoFrame.from_ndarray(img, format="bgr24")
 
 # ---- STREAMLIT UI ----
-st.title("SignLoom: Sign Language Interpreter")
+st.title("🖐️ SignLoom: Real-time Sign Language Interpreter")
 
-# Option to use Webcam or Upload Video
-option = st.radio("Choose input method:", ("Use Webcam", "Upload Video"))
+# ---- Choose Input Method ----
+option = st.radio("Choose input method:", ("📷 Use Webcam", "📂 Upload Video"))
 
 # Placeholder for detected sign
 detected_sign_placeholder = st.empty()
 
-if option == "Use Webcam":
-    st.write("Real-time Sign Language Recognition")
+if option == "📷 Use Webcam":
+    st.write("**Real-time Sign Language Recognition**")
     webrtc_streamer(key="sign-detection", video_processor_factory=VideoProcessor)
 
-elif option == "Upload Video":
+elif option == "📂 Upload Video":
     uploaded_file = st.file_uploader("Upload a video file", type=["mp4", "avi", "mov"])
 
     if uploaded_file is not None:
-        # Save uploaded file to temp directory
-        temp_video_path = os.path.join(tempfile.gettempdir(), "temp_video.mp4")
-        with open(temp_video_path, "wb") as f:
+        # Save uploaded file
+        with open("temp_video.mp4", "wb") as f:
             f.write(uploaded_file.read())
 
-        st.video(temp_video_path)
+        st.video("temp_video.mp4")
 
-        # Process Video Dynamically
-        cap = cv2.VideoCapture(temp_video_path)
+        # Process Video
+        cap = cv2.VideoCapture("temp_video.mp4")
         stframe = st.empty()
 
         while cap.isOpened():
@@ -136,7 +131,6 @@ elif option == "Upload Video":
             cv2.putText(frame, f'{pred_class} ({confidence:.2f}%)', (10, 30),
                         cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 0), 2, cv2.LINE_AA)
 
-            # Show the dynamically updated frame
-            stframe.image(frame, channels="BGR", use_column_width=True)
+            stframe.image(frame, channels="BGR")
 
         cap.release()
