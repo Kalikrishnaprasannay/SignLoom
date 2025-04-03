@@ -1,19 +1,21 @@
-import streamlit as st
-import numpy as np
 import os
 import cv2
+import streamlit as st
+import numpy as np
+import tensorflow as tf
+import mediapipe as mp
 import tempfile
 import av
-import mediapipe as mp
-import tensorflow as tf
 from gtts import gTTS
 from streamlit_webrtc import webrtc_streamer, VideoProcessorBase
 
-# Ensure OpenCV uses headless mode to avoid libGL issues
+# Fix OpenCV libGL issue
+os.environ["OPENCV_VIDEOIO_PRIORITY_MSMF"] = "0"
+os.environ["QT_QPA_PLATFORM"] = "offscreen"
 cv2.setNumThreads(1)
 
-# Load the trained model with error handling
-@st.cache_resource  # Cache the model for better performance
+# Load the trained model
+@st.cache_resource
 def load_model():
     try:
         return tf.keras.models.load_model("sign_language_model_transfer.keras")
@@ -23,7 +25,7 @@ def load_model():
 
 model = load_model()
 
-# Load class indices from dataset
+# Load class indices dynamically
 class_indices = {v: k for k, v in enumerate(sorted(os.listdir("./SData")))}
 index_to_class = {v: k for k, v in class_indices.items()}
 
@@ -35,20 +37,21 @@ mp_drawing = mp.solutions.drawing_utils
 def speak_text(text):
     try:
         tts = gTTS(text=text, lang='en')
-        with tempfile.NamedTemporaryFile(delete=False, suffix=".mp3") as tmp_file:
-            tts.save(tmp_file.name)
-            st.audio(tmp_file.name, format="audio/mp3")
+        temp_audio = tempfile.NamedTemporaryFile(delete=False, suffix=".mp3")
+        tts.save(temp_audio.name)
+        st.audio(temp_audio.name, format="audio/mp3")
+        os.unlink(temp_audio.name)  # Delete file after playback
     except Exception as e:
         st.error(f"Speech synthesis error: {e}")
 
-# Preprocess Frame Function
+# Preprocess frame for model
 def preprocess_frame(frame):
     tensor = cv2.resize(frame, (128, 128))
     tensor = np.array(tensor, dtype=np.float32) / 255.0  # Normalize
     tensor = np.expand_dims(tensor, axis=0)  # Add batch dimension
     return tensor
 
-# Function to Predict Sign
+# Function to predict sign
 def predict_sign(frame):
     if model is None:
         return "Error: Model not loaded", 0.0
@@ -73,7 +76,7 @@ class VideoProcessor(VideoProcessorBase):
             for hand_landmarks in result.multi_hand_landmarks:
                 mp_drawing.draw_landmarks(img, hand_landmarks, mp_hands.HAND_CONNECTIONS)
 
-            # Predict sign if a hand is detected
+            # Predict sign if hand detected
             if model:
                 pred_class, confidence = predict_sign(img_rgb)
                 cv2.putText(img, f'{pred_class} ({confidence:.2f}%)', (10, 50),
@@ -101,7 +104,6 @@ elif option == "Upload Video":
     uploaded_file = st.file_uploader("Upload a video file", type=["mp4", "avi", "mov"])
 
     if uploaded_file is not None:
-        # Save uploaded file
         with open("temp_video.mp4", "wb") as f:
             f.write(uploaded_file.read())
 
@@ -116,10 +118,9 @@ elif option == "Upload Video":
             if not ret:
                 break
 
-            # Predict Sign
             pred_class, confidence = predict_sign(frame)
 
-            # Speak the predicted sign
+            # Speak detected sign
             cleaned_pred_class = pred_class.replace("_", " ")
             speak_text(cleaned_pred_class)
 
