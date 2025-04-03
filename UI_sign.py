@@ -10,14 +10,26 @@ from gtts import gTTS
 from streamlit_webrtc import webrtc_streamer, VideoProcessorBase
 
 # Load the trained model with error handling
-try:
-    model = tf.keras.models.load_model("sign_language_model_transfer.keras")
-except Exception as e:
-    st.error(f"Error loading model: {e}")
-    model = None
+@st.cache_resource
+def load_model():
+    try:
+        return tf.keras.models.load_model("sign_language_model_transfer.keras")
+    except Exception as e:
+        st.error(f"Error loading model: {e}")
+        return None
+
+model = load_model()
 
 # Load class indices (auto-detect from dataset folders)
-class_indices = {v: k for k, v in enumerate(sorted(os.listdir("./SData")))}
+@st.cache_resource
+def load_class_indices():
+    try:
+        return {v: k for k, v in enumerate(sorted(os.listdir("./SData")))}
+    except Exception as e:
+        st.error(f"Error loading class indices: {e}")
+        return {}
+
+class_indices = load_class_indices()
 index_to_class = {v: k for k, v in class_indices.items()}
 
 # Initialize MediaPipe Hand Detection
@@ -94,14 +106,15 @@ elif option == "Upload Video":
     uploaded_file = st.file_uploader("Upload a video file", type=["mp4", "avi", "mov"])
 
     if uploaded_file is not None:
-        # Save uploaded file
-        with open("temp_video.mp4", "wb") as f:
+        # Save uploaded file to temp directory
+        temp_video_path = os.path.join(tempfile.gettempdir(), "temp_video.mp4")
+        with open(temp_video_path, "wb") as f:
             f.write(uploaded_file.read())
 
-        st.video("temp_video.mp4")
+        st.video(temp_video_path)
 
-        # Process Video
-        cap = cv2.VideoCapture("temp_video.mp4")
+        # Process Video Dynamically
+        cap = cv2.VideoCapture(temp_video_path)
         stframe = st.empty()
 
         while cap.isOpened():
@@ -123,6 +136,7 @@ elif option == "Upload Video":
             cv2.putText(frame, f'{pred_class} ({confidence:.2f}%)', (10, 30),
                         cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 0), 2, cv2.LINE_AA)
 
-            stframe.image(frame, channels="BGR")
+            # Show the dynamically updated frame
+            stframe.image(frame, channels="BGR", use_column_width=True)
 
         cap.release()
